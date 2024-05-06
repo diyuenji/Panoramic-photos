@@ -42,5 +42,7 @@ imageA = cv2.imread(args["first"])
 imageB = cv2.imread(args["second"])
 imageC = cv2.imread(args["third"])
 imageAB=connect_two_images(imageA,imageB)
-connect_two_images(imageAB,imageC)
+results=connect_two_images(imageAB,imageC)
+cv2.imwrite("result.jpg", results)
 # run code python stitch.py --first left.png --second middle.png --third right.png
+# python stitch.py --first Left1.jpg --second Middle1.jpg --third Right1.jpg

@@ -1,35 +1,42 @@
-import cv2 
-image_paths=["left.png","middle.png","right.png"] 
-# initialized a list of images 
-imgs = [] 
+# import the necessary packages
+from imutils import paths
+import numpy as np
+import argparse
+import imutils
+import cv2
+# construct the argument parser and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--images", type=str, required=True,
+	help="path to input directory of images to stitch")
+ap.add_argument("-o", "--output", type=str, required=True,
+	help="path to the output image")
+args = vars(ap.parse_args())
 
-image= cv2.imread("left.png") 
-cv2.imshow('1234',image)  
-for i in range(len(image_paths)): 
-    imgs.append(cv2.imread(image_paths[i])) 
-    imgs[i]=cv2.resize(imgs[i],(0,0),fx=0.4,fy=0.4) 
-    # this is optional if your input images isn't too large 
-    # you don't need to scale down the image 
-    # in my case the input images are of dimensions 3000x1200 
-    # and due to this the resultant image won't fit the screen 
-    # scaling down the images  
-# showing the original pictures 
-cv2.imshow('1',imgs[0]) 
-cv2.imshow('2',imgs[1]) 
-cv2.imshow('3',imgs[2]) 
-  
-stitchy=cv2.Stitcher.create() 
-(dummy,output)=stitchy.stitch(imgs) 
-  
-if dummy != cv2.STITCHER_OK: 
-  # checking if the stitching procedure is successful 
-  # .stitch() function returns a true value if stitching is  
-  # done successfully 
-    print("stitching ain't successful") 
-else:  
-    print('Your Panorama is ready!!!') 
-  
-# # final output 
-cv2.imshow('final result',output) 
-  
-cv2.waitKey(0)
+# grab the paths to the input images and initialize our images list
+print("[INFO] loading images...")
+imagePaths = sorted(list(paths.list_images(args["images"])))
+images = []
+# loop over the image paths, load each one, and add them to our
+# images to stitch list
+for imagePath in imagePaths:
+	image = cv2.imread(imagePath)
+	images.append(image)
+ 
+ # initialize OpenCV's image stitcher object and then perform the image
+# stitching
+print("[INFO] stitching images...")
+stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
+(status, stitched) = stitcher.stitch(images)
+
+# if the status is '0', then OpenCV successfully performed image
+# stitching
+if status == 0:
+	# write the output stitched image to disk
+	cv2.imwrite(args["output"], stitched)
+	# display the output stitched image to our screen
+	cv2.imshow("Stitched", stitched)
+	cv2.waitKey(0)
+# otherwise the stitching failed, likely due to not enough keypoints)
+# being detected
+else:
+	print("[INFO] image stitching failed ({})".format(status))
